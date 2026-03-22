@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Distributor Price</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="auth-shell" id="authShell">
+      <section class="auth-card">
+        <img class="hero-logo" src="./assets/schlegel-logo.webp" alt="Schlegel Elektrokontakt logo" />
+        <p class="eyebrow">Distributor Price</p>
+        <h1 class="auth-title">Secure Access</h1>
+        <p class="hero-copy">Choose the distributor, then enter the password to open the pricing app.</p>
+        <div class="private-data-box">
+          <p class="private-data-title">Private price data</p>
+          <p class="hint">
+            This public app does not include pricing data. Load a private Excel workbook or exported JSON file from your own device.
+          </p>
+          <label class="field">
+            <span>Private pricing file</span>
+            <input
+              id="priceFileInput"
+              type="file"
+              accept=".xlsx,.xls,.json,application/json,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            />
+          </label>
+          <div class="form-actions">
+            <button type="button" class="button" id="loadPriceFileButton">Load pricing file</button>
+            <button type="button" class="button button-secondary" id="clearPriceFileButton">Clear cached pricing</button>
+          </div>
+          <div id="priceFileMessage" class="hint auth-message"></div>
+        </div>
+        <form id="loginForm" class="auth-form">
+          <label class="field">
+            <span>Country distributor</span>
+            <select id="authDistributorSelect"></select>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="passwordInput" type="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit" class="button">Open app</button>
+        </form>
+        <div id="loginMessage" class="hint auth-message"></div>
+      </section>
+    </div>
+
+    <div class="page-shell app-shell is-hidden" id="appShell">
+      <header class="hero">
+        <div>
+          <img class="hero-logo" src="./assets/schlegel-logo.webp" alt="Schlegel Elektrokontakt logo" />
+          <p class="eyebrow">Distributor Price</p>
+          <h1>Distributor Pricing</h1>
+          <p class="hero-copy">
+            Select the distributor first, search a type number, enter quantity, and the app will
+            apply discount rules, scale pricing, and MOQ guidance automatically.
+          </p>
+        </div>
+        <div class="hero-card">
+          <div class="stat">
+            <span class="stat-label">Products loaded</span>
+            <strong id="productCount">0</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Discountable items</span>
+            <strong id="discountableCount">0</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Scaled items</span>
+            <strong id="scaledCount">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel controls-panel">
+          <div class="panel-heading">
+            <p class="section-tag">1. Distributor</p>
+            <h2>Choose who is buying</h2>
+          </div>
+
+          <label class="field">
+            <span>Country distributor</span>
+            <select id="distributorSelect"></select>
+          </label>
+
+          <div class="distributor-summary" id="distributorSummary"></div>
+          <div id="distributorLockMessage" class="hint"></div>
+
+          <div class="manage-lock" id="manageLock">
+            <p class="hint">Distributor management is locked.</p>
+            <form id="manageUnlockForm" class="manage-unlock-form">
+              <label class="field">
+                <span>Management password</span>
+                <input id="managePasswordInput" type="password" autocomplete="current-password" required />
+              </label>
+              <button type="submit" class="button">Unlock distributor management</button>
+            </form>
+            <div id="manageUnlockMessage" class="hint auth-message"></div>
+          </div>
+
+          <details class="manage-box is-hidden" id="manageBox">
+            <summary>Manage distributor discounts</summary>
+            <form id="distributorForm" class="distributor-form">
+              <input id="editingDistributorId" type="hidden" />
+              <label class="field">
+                <span>Distributor name</span>
+                <input id="distName" type="text" placeholder="Singapore Distributor" required />
+              </label>
+              <label class="field">
+                <span>Country</span>
+                <input id="distCountry" type="text" placeholder="Singapore" required />
+              </label>
+              <label class="field">
+                <span>Discount (%)</span>
+                <input id="distDiscount" type="number" min="0" max="100" step="0.01" value="0" required />
+              </label>
+              <div class="form-actions">
+                <button type="submit" class="button" id="saveDistributorButton">Save distributor</button>
+                <button type="button" class="button button-secondary" id="cancelEditButton" hidden>Cancel edit</button>
+              </div>
+            </form>
+            <p class="hint">Saved distributors stay in this browser using local storage.</p>
+            <div id="distributorList" class="distributor-list"></div>
+          </details>
+        </section>
+
+        <section class="panel search-panel">
+          <div class="panel-heading">
+            <p class="section-tag">2. Product</p>
+            <h2>Search price</h2>
+          </div>
+
+          <div class="search-grid">
+            <label class="field search-field">
+              <span>Type number</span>
+              <input id="searchInput" type="search" placeholder="Example: AF, CO_BTK25_01" />
+            </label>
+
+            <label class="field quantity-field">
+              <span>Quantity</span>
+              <input id="quantityInput" type="number" min="1" step="1" value="1" />
+            </label>
+          </div>
+
+          <div id="searchStatus" class="hint"></div>
+          <div id="results" class="results"></div>
+        </section>
+
+        <section class="panel cart-panel">
+          <div class="panel-heading">
+            <p class="section-tag">3. Cart</p>
+            <h2>Selected items</h2>
+          </div>
+
+          <div id="cartSummary" class="cart-summary"></div>
+          <div class="cart-toolbar">
+            <button type="button" class="button button-secondary" id="clearCartButton">Clear cart</button>
+            <button type="button" class="button" id="downloadPdfButton">Download PDF</button>
+          </div>
+          <div id="cartItems" class="cart-items"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="resultTemplate">
+      <article class="result-card">
+        <div class="result-header">
+          <div>
+            <p class="result-kicker">Type number</p>
+            <h3 class="result-title"></h3>
+          </div>
+          <span class="badge"></span>
+        </div>
+
+        <div class="price-strip">
+          <div>
+            <span class="metric-label">Applied price</span>
+            <strong class="applied-price"></strong>
+          </div>
+          <div>
+            <span class="metric-label">Per piece</span>
+            <strong class="per-piece"></strong>
+          </div>
+          <div>
+            <span class="metric-label">Line total</span>
+            <strong class="line-total"></strong>
+          </div>
+        </div>
+
+        <div class="meta-grid"></div>
+        <div class="scale-wrap"></div>
+        <div class="result-actions">
+          <button type="button" class="button add-to-cart-button">Add to cart</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
