@@ -4,6 +4,7 @@ const PRICE_DATA_STORAGE_KEY = "schlegel-private-products-v1";
 const AUTH_STORAGE_KEY = "schlegel-auth-v1";
 const MANAGE_AUTH_STORAGE_KEY = "schlegel-manage-auth-v1";
 const APP_PASSWORD = "hweeli87";
+const MAX_SEARCH_RESULTS = 15;
 
 const defaultDistributors = [
   { id: "singapore", name: "Singapore Distributor", country: "Singapore", discount: 0 },
@@ -579,11 +580,11 @@ function renderResults() {
 
   const matches = state.products
     .filter((product) => !term || product.typeNumber.toLowerCase().includes(term))
-    .slice(0, 50);
+    .slice(0, MAX_SEARCH_RESULTS);
 
   elements.searchStatus.textContent =
-    term && matches.length === 50
-      ? "Showing the first 50 matches. Keep typing to narrow the results."
+    term && matches.length === MAX_SEARCH_RESULTS
+      ? `Showing the first ${MAX_SEARCH_RESULTS} matches. Keep typing to narrow the results.`
       : `${formatInteger(matches.length)} product${matches.length === 1 ? "" : "s"} found`;
 
   if (!matches.length) {
