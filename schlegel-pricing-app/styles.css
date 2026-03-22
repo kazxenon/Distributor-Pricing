@@ -156,6 +156,11 @@ h1 {
   align-self: stretch;
 }
 
+.hero-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .stat {
   padding: 18px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(239, 228, 211, 0.65));

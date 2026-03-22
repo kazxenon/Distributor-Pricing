@@ -3,6 +3,7 @@ const CART_STORAGE_KEY = "schlegel-cart-v1";
 const PRICE_DATA_STORAGE_KEY = "schlegel-private-products-v1";
 const AUTH_STORAGE_KEY = "schlegel-auth-v1";
 const MANAGE_AUTH_STORAGE_KEY = "schlegel-manage-auth-v1";
+const SELECTED_DISTRIBUTOR_STORAGE_KEY = "schlegel-selected-distributor-v1";
 const APP_PASSWORD = "hweeli87";
 const MAX_SEARCH_RESULTS = 15;
 
@@ -57,6 +58,7 @@ const elements = {
   productCount: document.querySelector("#productCount"),
   discountableCount: document.querySelector("#discountableCount"),
   scaledCount: document.querySelector("#scaledCount"),
+  logoutButton: document.querySelector("#logoutButton"),
   cartSummary: document.querySelector("#cartSummary"),
   cartItems: document.querySelector("#cartItems"),
   clearCartButton: document.querySelector("#clearCartButton"),
@@ -66,6 +68,7 @@ const elements = {
 init();
 
 async function init() {
+  state.selectedDistributorId = loadSelectedDistributorId();
   renderDistributorOptions();
   bindAuth();
   renderPriceFileStatus();
@@ -141,6 +144,7 @@ function bindAuth() {
 
     state.authenticated = true;
     state.selectedDistributorId = elements.authDistributorSelect.value || state.distributors[0]?.id || "";
+    saveSelectedDistributorId();
     if (!state.cart.length) {
       state.cartDistributorId = state.selectedDistributorId;
     } else if (!state.cartDistributorId) {
@@ -287,6 +291,10 @@ function bindEvents() {
     clearCart();
   });
 
+  elements.logoutButton.addEventListener("click", () => {
+    logout();
+  });
+
   elements.manageUnlockForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -345,6 +353,10 @@ function loadCart() {
   } catch {
     return [];
   }
+}
+
+function loadSelectedDistributorId() {
+  return localStorage.getItem(SELECTED_DISTRIBUTOR_STORAGE_KEY) || "";
 }
 
 function loadPrivateProducts() {
@@ -470,6 +482,10 @@ function saveCart() {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.cart));
 }
 
+function saveSelectedDistributorId() {
+  localStorage.setItem(SELECTED_DISTRIBUTOR_STORAGE_KEY, state.selectedDistributorId || "");
+}
+
 function renderDistributorOptions() {
   const options = state.distributors
     .map(
@@ -506,6 +522,7 @@ function renderDistributors(selectedId) {
   }
 
   state.selectedDistributorId = selectedId || state.selectedDistributorId || state.distributors[0].id;
+  saveSelectedDistributorId();
   if (!state.cart.length) {
     state.cartDistributorId = state.selectedDistributorId;
   }
@@ -815,6 +832,20 @@ function clearCart() {
   state.cartDistributorId = state.selectedDistributorId;
   saveCart();
   renderCart();
+}
+
+function logout() {
+  state.authenticated = false;
+  state.managementUnlocked = false;
+  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  sessionStorage.removeItem(MANAGE_AUTH_STORAGE_KEY);
+  elements.passwordInput.value = "";
+  elements.loginMessage.textContent = "";
+  elements.managePasswordInput.value = "";
+  elements.manageUnlockMessage.textContent = "";
+  renderAuthState();
+  renderManagementState();
+  syncAuthDistributorSelect();
 }
 
 function downloadCartPdf() {
